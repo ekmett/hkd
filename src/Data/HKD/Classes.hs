@@ -1,6 +1,5 @@
 {-# Language CPP #-}
 {-# Language GeneralizedNewtypeDeriving #-}
-{-# Language TypeApplications #-}
 {-# Language Trustworthy #-}
 
 -- |

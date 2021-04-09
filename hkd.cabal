@@ -26,6 +26,8 @@ copyright:       (c) 2019-2021 Edward Kmett
                  (c) 2021 Aaron Vargo
 category:        Data Structures
 build-type:      Simple
+extra-source-files:
+  .hlint.yaml
 extra-doc-files:
   README.md
   CHANGELOG.md

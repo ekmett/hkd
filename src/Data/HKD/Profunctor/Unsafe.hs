@@ -21,7 +21,7 @@ class (forall c. FFunctor (p c)) => FProfunctor (p :: (i -> Type) -> (j -> Type)
   {-# inline frmap #-}
 
   (##.) :: forall a b c. (forall x. Coercible (c x) (b x)) => (b ~> c) -> p a b -> p a c
-  (##.) = \_ -> \p -> p `seq` frmap go p where
+  (##.) = \_ p -> p `seq` frmap go p where
      go :: forall y. Coercible (c y) (b y) => b y -> c y
      go = coerce
   {-# inline (##.) #-}

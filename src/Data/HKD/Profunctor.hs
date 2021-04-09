@@ -17,7 +17,7 @@ import Data.HKD.Profunctor.Unsafe
 import GHC.Generics
 
 fswap :: (a :*: b) ~> (b :*: a)
-fswap (a :*: b) = (b :*: a)
+fswap (a :*: b) = b :*: a
 {-# inline fswap #-}
 
 class FProfunctor p => FStrong p where
@@ -113,10 +113,10 @@ instance Functor f => FCostrong (FCostar f) where
   funfirst (f :: FCostar f (a :*: c) (b :*: c)) = FCostar f' where
     f' :: forall x. f (a x) -> b x
     f' fa = b where 
-      (b :*: d) = runFCostar f ((\a -> (a :*: d)) <$> fa)
+      b :*: d = runFCostar f ((\a -> a :*: d) <$> fa)
   funsecond (f :: FCostar f (c :*: a) (c :*: b)) = FCostar f' where
     f' :: forall x. f (a x) -> b x
     f' fa = b where 
-      (d :*: b) = runFCostar f ((:*:) d <$> fa)
+      d :*: b = runFCostar f ((:*:) d <$> fa)
   {-# inline funfirst #-}
   {-# inline funsecond #-}

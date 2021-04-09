@@ -1,4 +1,3 @@
-{-# Language GeneralizedNewtypeDeriving #-}
 {-# Language Unsafe #-}
 
 -- |
