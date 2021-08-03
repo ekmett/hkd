@@ -1,3 +1,4 @@
+{-# Language CPP #-}
 {-# Language GeneralizedNewtypeDeriving #-}
 {-# Language Trustworthy #-}
 
@@ -330,10 +331,26 @@ class FSemideciding q t where
 
 instance (FSemideciding q s, FSemideciding q t) => FSemideciding q (Product s t)
 instance (FSemideciding q s, FSemideciding q t) => FSemideciding q (Sum s t)
+#if __GLASGOW_HASKELL__ >= 808
 deriving newtype instance FSemideciding q f => FSemideciding q (Monoid.Alt f)
 deriving newtype instance FSemideciding q f => FSemideciding q (Monoid.Ap f)
 -- deriving newtype instance FSemideciding q f => FSemideciding q (Backwards f)
 -- deriving newtype instance FSemideciding q f => FSemideciding q (Reverse f)
+#else
+-- Using GeneralizedNewtypeDeriving with GHC 8.6 won't work due to what is
+-- presumably an old typechecker bug. Sigh. See ekmett/hkd#1.
+instance FSemideciding q f => FSemideciding q (Monoid.Alt f) where
+  fsemideciding = \k f -> fsemideciding @q (Monoid.Alt #. k) f
+
+instance FSemideciding q f => FSemideciding q (Monoid.Ap f) where
+  fsemideciding = \k f -> fsemideciding @q (Monoid.Ap #. k) f
+
+-- instance FSemideciding q f => FSemideciding q (Backwards f) where
+--   fsemideciding = \k f -> fsemideciding @q (Backwards #. k) f
+--
+-- instance FSemideciding q f => FSemideciding q (Reverse f) where
+--   fsemideciding = \k f -> fsemideciding @q (Reverse #. k) f
+#endif
 
 instance (FSemideciding q s, FSemideciding q t) => FSemideciding q (s :*: t) where
   fsemideciding = \k f -> fdivide k (fsemideciding @q id f) (fsemideciding @q id f)
