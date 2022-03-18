@@ -135,7 +135,7 @@ library
     ghc-options: -finline-generics-aggressively
 
   build-depends:
-    , base >=4.10 && <4.16
+    , base >=4.10 && <4.17
     , base-orphans >= 0.5.2 && < 1
     , contravariant ^>= 1.6
     , dependent-hashmap ^>= 0.1
