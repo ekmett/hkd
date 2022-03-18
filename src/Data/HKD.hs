@@ -1,3 +1,4 @@
+{-# Language DerivingStrategies #-}
 {-# Language GeneralizedNewtypeDeriving #-}
 {-# language Trustworthy #-}
 
@@ -490,7 +491,7 @@ deriving stock instance Ord (f (F1 a g)) => Ord (FCompose a f g)
 deriving stock instance Show (f (F1 a g)) => Show (FCompose a f g)
 deriving stock instance Read (f (F1 a g)) => Read (FCompose a f g)
 
-pattern FCompose :: Functor f => f (g a) -> FCompose a f g 
+pattern FCompose :: Functor f => f (g a) -> FCompose a f g
 pattern FCompose { runFCompose } <- FCompose' (fmap runF1 -> runFCompose) where
   FCompose f = FCompose' (fmap F1 f)
 

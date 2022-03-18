@@ -1,4 +1,5 @@
 {-# Language Trustworthy #-}
+{-# Language DerivingStrategies #-}
 {-# Language GeneralizedNewtypeDeriving #-}
 {-# options_ghc -Wno-orphans #-}
 {-# options_haddock hide #-}
@@ -64,7 +65,7 @@ instance Read c => Read1 (K1 i c) where
   liftReadPrec _ _ = readPrec
 
 instance Eq1 Par1 where
-  liftEq f = coerce f 
+  liftEq f = coerce f
 
 instance Ord1 Par1 where
   liftCompare f = coerce f
@@ -78,10 +79,10 @@ instance Show1 Par1 where
 instance Read1 Par1 where
   liftReadPrec f _ = parens $ do
     Read.prec 10 $ do
-      Ident "Par1" <- lexP 
+      Ident "Par1" <- lexP
       Par1 <$> step f
 {-
-      Punc "{" <- lexP 
+      Punc "{" <- lexP
       field <- readField "unPar1" (step f)
       Punc "}" <- lexP
       pure $ Par1 field

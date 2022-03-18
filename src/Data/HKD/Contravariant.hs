@@ -1,4 +1,5 @@
 {-# Language CPP #-}
+{-# Language DerivingStrategies #-}
 {-# Language GeneralizedNewtypeDeriving #-}
 {-# Language Trustworthy #-}
 

@@ -1,3 +1,4 @@
+{-# Language DerivingStrategies #-}
 {-# Language GeneralizedNewtypeDeriving #-}
 {-# Language Unsafe #-}
 {-# options_haddock not-home #-}
