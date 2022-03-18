@@ -57,7 +57,6 @@ common base
     DeriveDataTypeable
     DeriveGeneric
     DeriveTraversable
-    DerivingVia
     EmptyCase
     ExistentialQuantification
     ExplicitNamespaces
@@ -103,7 +102,7 @@ library
     Data.HKD.Orphans
     Data.Traversable.Confusing
 
-  exposed-modules:  
+  exposed-modules:
     Data.HKD
     Data.HKD.Classes
     Data.HKD.Contravariant
