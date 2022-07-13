@@ -376,13 +376,8 @@ instance FTraversable V1 where
   ftraverseMap _ _ = \case
   {-# inline ftraverseMap #-}
 
-instance FTraversable f => FTraversable (M1 i c f) where
-  ftraverseMap g f = ftraverseMap (g .# M1) f .# unM1
-  {-# inline ftraverseMap #-}
-
-instance FTraversable f => FTraversable (Rec1 f) where
-  ftraverseMap g f = ftraverseMap (g .# Rec1) f .# unRec1
-  {-# inline ftraverseMap #-}
+deriving newtype instance FTraversable f => FTraversable (M1 i c f)
+deriving newtype instance FTraversable f => FTraversable (Rec1 f)
 
 instance FTraversable (K1 i a) where
   ftraverseMap g _ = pure . g .# (K1 . unK1)
