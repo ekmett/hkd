@@ -122,8 +122,8 @@ data F0 f = F0
   , FApplicative, FApply )
 
 instance FTraversableWithIndex (Index '[]) F0 where
-  iftraverse _ F0 = pure F0
-  {-# inline iftraverse #-}
+  iftraverseMap g _ F0 = pure (g F0)
+  {-# inline iftraverseMap #-}
 
 -- * F1
 
@@ -137,8 +137,8 @@ newtype F1 a f = F1 { runF1 :: f a }
   )
 
 instance FTraversableWithIndex (Index '[a]) (F1 a) where
-  iftraverse f (F1 a) = F1 <$> f (UnsafeIndex 0) a
-  {-# inline iftraverse #-}
+  iftraverseMap g f (F1 a) = g . F1 <$> f (UnsafeIndex 0) a
+  {-# inline iftraverseMap #-}
 
 deriving newtype instance Ix (f a) => Ix (F1 a f)
 deriving newtype instance Enum (f a) => Enum (F1 a f)
@@ -149,8 +149,8 @@ instance FFoldable (F1 a) where
   {-# inline flengthAcc #-}
 
 instance FTraversable (F1 a) where
-  ftraverse f = fmap F1 . f .# runF1
-  {-# inline ftraverse #-}
+  ftraverseMap g f = fmap (g . F1) . f .# runF1
+  {-# inline ftraverseMap #-}
 
 instance FApplicative (F1 a) where
   fpure = \ x -> F1 x
@@ -178,10 +178,10 @@ pattern F2 a b = F2' (F1 a) (F1 b)
 {-# complete F2 :: F2 #-}
 
 instance FTraversableWithIndex (Index '[a,b]) (F2 a b) where
-  iftraverse f (F2 a b) = liftA2 F2
+  iftraverseMap g f (F2 a b) = liftA2 (\ a' b' -> g (F2 a' b'))
     (f (UnsafeIndex 0) a)
     (f (UnsafeIndex 1) b)
-  {-# inline iftraverse #-}
+  {-# inline iftraverseMap #-}
 
 instance FBind (F2 a b) where
   fbind = \(F2 a b) f ->
@@ -204,11 +204,11 @@ pattern F3 a b c = F3' (F1 a) (F1 b) (F1 c)
 {-# complete F3 :: F3 #-}
 
 instance FTraversableWithIndex (Index '[a,b,c]) (F3 a b c) where
-  iftraverse f (F3 a b c) = liftA3 F3
+  iftraverseMap g f (F3 a b c) = liftA3 (\ a' b' c' -> g (F3 a' b' c'))
     (f (UnsafeIndex 0) a)
     (f (UnsafeIndex 1) b)
     (f (UnsafeIndex 2) c)
-  {-# inline iftraverse #-}
+  {-# inline iftraverseMap #-}
 
 instance FBind (F3 a b c) where
   fbind = \(F3 a b c) f ->
@@ -232,12 +232,12 @@ pattern F4 a b c d = F4' (F1 a) (F1 b) (F1 c) (F1 d)
 {-# complete F4 :: F4 #-}
 
 instance FTraversableWithIndex (Index '[a,b,c,d]) (F4 a b c d) where
-  iftraverse f (F4 a b c d) = liftA2 F4
+  iftraverseMap g f (F4 a b c d) = liftA3 (\ a' b' c' d' -> g (F4 a' b' c' d'))
        (f (UnsafeIndex 0) a)
        (f (UnsafeIndex 1) b)
-    <*> f (UnsafeIndex 2) c
+       (f (UnsafeIndex 2) c)
     <*> f (UnsafeIndex 3) d
-  {-# inline iftraverse #-}
+  {-# inline iftraverseMap #-}
 
 instance FBind (F4 a b c d) where
   fbind = \(F4 a b c d) f ->
@@ -262,13 +262,13 @@ pattern F5 a b c d e = F5' (F1 a) (F1 b) (F1 c) (F1 d) (F1 e)
 {-# complete F5 :: F5 #-}
 
 instance FTraversableWithIndex (Index '[a,b,c,d,e]) (F5 a b c d e) where
-  iftraverse f (F5 a b c d e) = liftA2 F5
+  iftraverseMap g f (F5 a b c d e) = liftA3 (\ a' b' c' d' e' -> g (F5 a' b' c' d' e'))
        (f (UnsafeIndex 0) a)
        (f (UnsafeIndex 1) b)
-    <*> f (UnsafeIndex 2) c
+       (f (UnsafeIndex 2) c)
     <*> f (UnsafeIndex 3) d
     <*> f (UnsafeIndex 4) e
-  {-# inline iftraverse #-}
+  {-# inline iftraverseMap #-}
 
 instance FBind (F5 a b c d e) where
   fbind = \(F5 a b c d e) f ->
@@ -373,8 +373,8 @@ instance FFoldable Lim where
   {-# inline flengthAcc #-}
 
 instance FTraversable Lim where
-  ftraverse = \ f (Lim m) -> unsafeLim <$> f m
-  {-# inline ftraverse #-}
+  ftraverseMap = \ g f (Lim m) -> g . unsafeLim <$> f m
+  {-# inline ftraverseMap #-}
 
 instance FApply Lim where
   fliftA2 f (Lim x) (Lim y) = Lim (f x y)
@@ -511,8 +511,8 @@ instance Foldable f => FFoldable (FCompose a f) where
   {-# inline ffoldMap #-}
 
 instance Traversable f => FTraversable (FCompose a f) where
-  ftraverse = \f -> fmap FCompose' . traverse (fmap F1 . f .# runF1) .# runFCompose'
-  {-# inline ftraverse #-}
+  ftraverseMap = \g f -> fmap (g . FCompose') . traverse (fmap F1 . f .# runF1) .# runFCompose'
+  {-# inline ftraverseMap #-}
 
 type role HKD representational nominal nominal
 newtype HKD (f :: Type -> Type) (x :: i) (a :: i -> Type) = HKD { runHKD :: f (F1 x a) }
@@ -549,12 +549,12 @@ instance FoldableWithIndex i f => FFoldableWithIndex (Atkey i x) (HKD f x) where
   {-# inline iffoldMap #-}
 
 instance Traversable f => FTraversable (HKD f x) where
-  ftraverse = \f -> fmap HKD . traverse (fmap F1 . f .# runF1) .# runHKD
-  {-# inline ftraverse #-}
+  ftraverseMap = \g f -> fmap (g . HKD) . traverse (fmap F1 . f .# runF1) .# runHKD
+  {-# inline ftraverseMap #-}
 
 instance TraversableWithIndex i f => FTraversableWithIndex (Atkey i x) (HKD f x) where
-  iftraverse = \f -> fmap HKD . itraverse (\i -> fmap F1 . f (Atkey i) .# runF1) .# runHKD
-  {-# inline iftraverse #-}
+  iftraverseMap = \g f -> fmap (g . HKD) . itraverse (\i -> fmap F1 . f (Atkey i) .# runF1) .# runHKD
+  {-# inline iftraverseMap #-}
 
 instance Applicative f => FApply (HKD f x) where
   fliftA2 = \f (HKD fab) -> HKD #. liftA2 (\(F1 i) (F1 j) -> F1 $ f i j) fab .# runHKD
@@ -616,11 +616,11 @@ instance FFoldableWithIndex i f => FoldableWithIndex (Some i) (LKD f) where
   {-# inline ifoldMap #-}
 
 instance FTraversable f => Traversable (LKD f) where
-  traverse = \f -> fmap LKD . ftraverse (fmap Const . f .# getConst) .# runLKD
+  traverse = \f -> ftraverseMap LKD (fmap Const . f .# getConst) .# runLKD
   {-# inline traverse #-}
 
 instance FTraversableWithIndex i f => TraversableWithIndex (Some i) (LKD f) where
-  itraverse = \f -> fmap LKD . iftraverse (\i -> fmap Const . f (Some i) .# getConst) .# runLKD
+  itraverse = \f -> iftraverseMap LKD (\i -> fmap Const . f (Some i) .# getConst) .# runLKD
   {-# inline itraverse #-}
 
 instance FContravariant f => Contravariant (LKD f) where
