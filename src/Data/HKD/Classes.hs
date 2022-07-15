@@ -100,7 +100,7 @@ import Data.Kind (Type, Constraint)
 import qualified Data.Monoid as Monoid
 import Data.Proxy (Proxy (..))
 import qualified Data.Some.GADT as G
-import Data.Some.Newtype (Some (..), mapSome, foldSome, withSome, traverseSome)
+import Data.Some.Newtype (Some (..), mapSome, foldSome, withSome)
 import qualified Data.Some.Church as C
 import Data.Traversable.WithIndex
 import GHC.Generics
@@ -696,8 +696,8 @@ instance FFoldableWithIndex f (DHashMap f) where
 
 class (FFunctorWithIndex i f, FFoldableWithIndex i f, FTraversable f) => FTraversableWithIndex i f | f -> i where
   iftraverseMap :: Applicative m => (f b -> r) -> (forall x. i x -> a x -> m (b x)) -> f a -> m r
-  default iftraverseMap 
-    :: (Generic1 f, FTraversableWithIndex i (Rep1 f), Applicative m) 
+  default iftraverseMap
+    :: (Generic1 f, FTraversableWithIndex i (Rep1 f), Applicative m)
     => (f b -> r) -> (forall x. i x -> a x -> m (b x)) -> f a -> m r
   iftraverseMap g f = iftraverseMap (g . to1) f . from1
   {-# inlinable iftraverseMap #-}
@@ -767,7 +767,7 @@ instance FFoldable G.Some where
   {-# inline flengthAcc #-}
 
 instance FTraversable G.Some where
-  ftraverseMap g f x = G.withSome x $ fmap (g . G.Some) . f
+  ftraverseMap g f = G.foldSome $ fmap (g . G.Some) . f
   {-# inline ftraverseMap #-}
 
 instance FFunctor C.Some where
@@ -781,7 +781,7 @@ instance FFoldable C.Some where
   {-# inline flengthAcc #-}
 
 instance FTraversable C.Some where
-  ftraverseMap g f x = C.withSome x $ fmap (g . C.mkSome) . f
+  ftraverseMap g f = C.foldSome $ fmap (g . C.mkSome) . f
   {-# inline ftraverseMap #-}
 
 -- TODO: IdentityT
@@ -795,7 +795,7 @@ instance FFoldableWithIndex U1 Some where
   iffoldMap f = foldSome (f U1)
 
 instance FTraversableWithIndex U1 Some where
-  iftraverseMap g f = fmap g . traverseSome (f U1)
+  iftraverseMap g f = ftraverseMap g (f U1)
 
 instance FFunctorWithIndex U1 G.Some where
   ifmap f = G.mapSome (f U1)
@@ -804,7 +804,7 @@ instance FFoldableWithIndex U1 G.Some where
   iffoldMap f = G.foldSome (f U1)
 
 instance FTraversableWithIndex U1 G.Some where
-  iftraverseMap g f = fmap g . G.traverseSome (f U1)
+  iftraverseMap g f = ftraverseMap g (f U1)
 
 instance FFunctorWithIndex U1 C.Some where
   ifmap f = C.mapSome (f U1)
@@ -813,7 +813,7 @@ instance FFoldableWithIndex U1 C.Some where
   iffoldMap f = C.foldSome (f U1)
 
 instance FTraversableWithIndex U1 C.Some where
-  iftraverseMap g f = fmap g . C.traverseSome (f U1)
+  iftraverseMap g f = ftraverseMap g (f U1)
 
 instance FFunctorWithIndex V1 U1 where
   ifmap = \_ U1 -> U1
