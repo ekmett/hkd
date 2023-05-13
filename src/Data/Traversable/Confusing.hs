@@ -1,4 +1,5 @@
 {-# Language Safe #-}
+{-# Language NoDerivingVia #-}
 
 -- |
 -- Copyright   : (C) 2013-2016 Edward Kmett, Eric Mertens
