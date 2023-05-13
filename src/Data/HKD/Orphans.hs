@@ -97,18 +97,22 @@ instance Semigroup (GOrdering a b) where
 instance a ~ b => Monoid (GOrdering a b) where
   mempty = GEQ
 
+{-
 instance (GEq f, GEq g) => GEq (f :+: g) where
   geq (L1 x) (L1 y) = geq x y
   geq (R1 x) (R1 y) = geq x y
   geq _ _ = Nothing
   {-# inline geq #-}
+-}
 
 instance GEq V1 where
   geq = \case
 
+{-
 instance (GEq f, GEq g) => GEq (f :*: g) where
   geq = \(a :*: b) (c :*: d) -> geq a c *> geq b d
   {-# inline geq #-}
+-}
 
 instance GEq f => GEq (M1 i c f) where
   geq :: forall a b. M1 i c f a -> M1 i c f b -> Maybe (a :~: b)
