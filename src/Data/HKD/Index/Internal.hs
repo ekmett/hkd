@@ -1,4 +1,5 @@
 {-# Language GeneralizedNewtypeDeriving #-}
+{-# Language ImportQualifiedPost #-}
 {-# Language Unsafe #-}
 {-# options_haddock not-home #-}
 
@@ -10,7 +11,7 @@
 -- Portability : non-portable
 
 module Data.HKD.Index.Internal
-( Index(UnsafeIndex,Index,IndexZ,IndexS)
+( Index(UnsafeIndex,Index,IZ,IS,KnownIZ,KnownIS)
 , lowerFin, liftFin
 , pattern IntIndex
 , toIndex
@@ -23,11 +24,13 @@ import Control.Arrow (first)
 import Data.Coerce
 import Data.GADT.Compare
 import Data.GADT.Show
+import Data.Proxy
 import Data.Kind
 import Data.Some
 import Data.Type.Coercion
 import Data.Type.Equality
 import GHC.TypeLits
+import GHC.TypeNats qualified as TN
 import Numeric.Fin.Internal
 import Unsafe.Coerce
 
@@ -58,8 +61,8 @@ lowerFin = coerce
 
 type role Index' nominal nominal
 data Index' :: [i] -> i -> Type where
-  IndexZ' :: Index' (a:as) a
-  IndexS' :: Index as a -> Index' (b:as) a
+  IZ' :: Index' (a:as) a
+  IS' :: Index as a -> Index' (b:as) a
 
 type KnownLength (as :: [i]) = KnownNat (Length as)
 
@@ -74,19 +77,44 @@ toIndex = fmap liftFin . toFin
 {-# inline toIndex #-}
 
 upIndex :: Index is i -> Index' is i
-upIndex (Index 0) = unsafeCoerce IndexZ'
-upIndex (Index n) = unsafeCoerce $ IndexS' $ UnsafeIndex (n - 1)
+upIndex (Index 0) = unsafeCoerce IZ'
+upIndex (Index n) = unsafeCoerce $ IS' $ UnsafeIndex (n - 1)
 {-# inline[0] upIndex #-}
 
-pattern IndexZ :: () => forall bs. as ~ (a:bs) => Index as a
-pattern IndexZ <- (upIndex -> IndexZ') where
-  IndexZ = UnsafeIndex 0
+pattern IZ :: () => forall bs. as ~ (a:bs) => Index as a
+pattern IZ <- (upIndex -> IZ') where
+  IZ = UnsafeIndex 0
 
-pattern IndexS :: () => forall bs. as ~ (b:bs) => Index bs a -> Index as a
-pattern IndexS n <- (upIndex -> IndexS' n) where
-  IndexS n = UnsafeIndex (fromIndex n + 1)
+pattern IS :: () => forall bs. as ~ (b:bs) => Index bs a -> Index as a
+pattern IS n <- (upIndex -> IS' n) where
+  IS n = UnsafeIndex (fromIndex n + 1)
+{-# complete IZ, IS #-}
 
-{-# complete IndexZ, IndexS #-}
+type role KnownIndex' nominal nominal
+data KnownIndex' :: [i] -> i -> Type where
+  KnownIZ' :: KnownLength as => KnownIndex' (a:as) a
+  KnownIS' :: KnownLength as => Index as a -> KnownIndex' (b:as) a
+
+upKnownIndex :: forall is i. KnownLength is => Index is i -> KnownIndex' is i
+upKnownIndex = case TN.someNatVal $ TN.natVal (Proxy :: Proxy (Length is)) - 1 of
+   SomeNat (Proxy :: Proxy n) -> case unsafeCoerce Refl of
+     (Refl :: n :~: Length js) -> case unsafeCoerce Refl of
+       (Refl :: (is :~: (j ': js))) -> case unsafeCoerce Refl of
+         (Refl :: (Length is :~: S (Length js))) -> \case
+           UnsafeIndex 0 -> case unsafeCoerce Refl of
+             (Refl :: j :~: i) -> (KnownIZ' :: KnownIndex' is i)
+           UnsafeIndex n -> (KnownIS' $ UnsafeIndex (n-1) :: KnownIndex' is i)
+{-# inline[0] upKnownIndex #-}
+
+pattern KnownIZ :: KnownLength is => forall js j. (KnownLength js, is ~ j ': js) => Index is i
+pattern KnownIZ <- (upKnownIndex -> KnownIZ') where
+  KnownIZ = UnsafeIndex 0
+
+pattern KnownIS :: KnownLength is => forall js j. (KnownLength js, is ~ j ': js) => Index js i -> Index is i
+pattern KnownIS n <- (upKnownIndex -> KnownIS' n) where
+  KnownIS n = UnsafeIndex (fromIndex n + 1)
+{-# complete KnownIZ, KnownIS #-}
+
 
 instance GEq (Index is) where
   geq = \(Index i) (Index j) ->

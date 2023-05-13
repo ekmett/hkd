@@ -8,7 +8,7 @@
 -- Portability : non-portable
 
 module Data.HKD.Index
-( Index(Index,IndexZ,IndexS)
+( Index(Index,IZ,IS,KnownIZ,KnownIS)
 , lowerFin, liftFin
 , pattern IntIndex
 , toIndex
