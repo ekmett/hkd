@@ -493,6 +493,7 @@ deriving stock instance Read (f (F1 a g)) => Read (FCompose a f g)
 pattern FCompose :: Functor f => f (g a) -> FCompose a f g 
 pattern FCompose { runFCompose } <- FCompose' (fmap runF1 -> runFCompose) where
   FCompose f = FCompose' (fmap F1 f)
+{-# COMPLETE FCompose #-}
 
 deriving stock instance
   ( Typeable k
