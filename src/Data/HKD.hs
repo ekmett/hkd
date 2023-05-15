@@ -1,5 +1,5 @@
-{-# Language GeneralizedNewtypeDeriving #-}
 {-# language Trustworthy #-}
+{-# Language GeneralizedNewtypeDeriving #-}
 
 -- |
 -- Copyright :  (c) 2019-2021 Edward Kmett
